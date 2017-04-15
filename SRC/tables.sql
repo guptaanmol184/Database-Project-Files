@@ -129,3 +129,28 @@ create table private_complaints
 /*View for public and private complaints*/
 
 #LOST AND FOUND
+create table lost_found
+(
+	item_id int PRIMARY KEY AUTO_INCREMENT,
+	lost_or_found enum('LOST','FOUND') NOT NULL,
+	username varchar(50) NOT NULL,
+	item_title varchar(100) NOT NULL,
+	description TEXT,
+	lf_datetime datetime DEFAULT CURRENT_TIMESTAMP,
+	lf_location varchar(100),
+	item_photo varchar(100) DEFAULT NULL,
+
+	#BLOB (Stores binary photo) OR 'LINK TO PHOTO' or 'PHOTO name is item_id'
+	contact_person varchar(70) NOT NULL,
+	contact_email varchar(70),
+	contact_no char(15),
+	status enum('OPEN','CLOSED') NOT NULL DEFAULT 'OPEN',
+
+	CONSTRAINT userlf_fk FOREIGN KEY (username) REFERENCES users (username)
+	ON UPDATE CASCADE ON DELETE CASCADE,
+
+	#create trigger later to enforce check either contact info. not NULL
+	CONSTRAINT check_nocontact CHECK (contact_email IS NOT NULL OR
+		contact_no IS NOT NULL)
+);
+
