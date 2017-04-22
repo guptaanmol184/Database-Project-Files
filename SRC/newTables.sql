@@ -31,7 +31,7 @@ insert into users values
 create table wardens
 (
 	warden_name varchar(50) PRIMARY KEY,
-	username varchar(50),
+	username varchar(50) UNIQUE,
 	warden_phone char(15),
 	CONSTRAINT wardenuser_fk FOREIGN KEY (username) REFERENCES users(username)
 	ON DELETE SET NULL ON UPDATE CASCADE
@@ -60,7 +60,7 @@ lines terminated by '\n';
 create table students
 (
 	roll_no char(9) PRIMARY KEY,
-	username varchar(50) DEFAULT NULL,
+	username varchar(50) DEFAULT NULL UNIQUE, # Allows multiple NULL values
 	fname varchar(30) NOT NULL,
 	lname varchar(30),
 	contact_no char(15),
@@ -80,50 +80,50 @@ lines terminated by '\n';
 
 update students SET contact_no=NULL where contact_no='NULL';
 
-/*VIEW to be created for PUBLIC and PRIVATE COMPLAINTS*/
-create table complaints
+create table private_complaints
 (
 	complaint_id int PRIMARY KEY AUTO_INCREMENT,
 	username varchar(50), #NULL if user who created complaint gets deleted
 	type enum('CIVIL','ELECTRICAL','NETWORK','GENERAL') NOT NULL DEFAULT 'GENERAL',
+	
+	roll_no char(9) NOT NULL,
+	c_roomno int(4) NOT NULL,
+	c_hostel varchar(30) NOT NULL,
+	freetime datetime,
+
 	create_date datetime DEFAULT CURRENT_TIMESTAMP,
 	update_date datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	#when complaint status was last updated by CONCERNED AUTHORITIES (also gives date it was rectified)
 	description TEXT,
 	status varchar(30) NOT NULL, # may need to be changed!!!
 	
-	CONSTRAINT complaintuser_fk FOREIGN KEY (username) REFERENCES users (username)
-	ON UPDATE CASCADE ON DELETE SET NULL
-);
-
-#overlap in public and private complaints NOG ALLOWED through FRONT END insertion
-
-create table public_complaints
-(
-	complaint_id int PRIMARY KEY,
-	location varchar(100) NOT NULL,
-	upvotes int NOT NULL DEFAULT 0,
-
-	CONSTRAINT pubcomplaint_fk FOREIGN KEY (complaint_id) REFERENCES complaints (complaint_id)
-	ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-create table private_complaints
-(
-	complaint_id int PRIMARY KEY,
-	roll_no char(9) NOT NULL,
-	c_roomno int(4) NOT NULL,
-	c_hostel varchar(30) NOT NULL,
-	freetime datetime,
-
-	CONSTRAINT pvtcomplaint_fk FOREIGN KEY (complaint_id) REFERENCES complaints (complaint_id)
-	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT pvtcomplaintuser_fk FOREIGN KEY (username) REFERENCES users (username)
+	ON UPDATE CASCADE ON DELETE SET NULL,
 
 	CONSTRAINT pvtcomrollno_fk FOREIGN KEY (roll_no) REFERENCES students (roll_no)
 	ON DELETE CASCADE ON UPDATE CASCADE,
 
 	CONSTRAINT pvtcomhostel_fk FOREIGN KEY (c_hostel) REFERENCES hostels (hostel_name)
 	ON DELETE CASCADE ON UPDATE RESTRICT #if ashwatha girls wing changes to jasmine
+);
+
+create table public_complaints
+(
+	complaint_id int PRIMARY KEY AUTO_INCREMENT,
+	username varchar(50), #NULL if user who created complaint gets deleted
+	type enum('CIVIL','ELECTRICAL','NETWORK','GENERAL') NOT NULL DEFAULT 'GENERAL',
+
+	create_date datetime DEFAULT CURRENT_TIMESTAMP,
+	update_date datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	#when complaint status was last updated by CONCERNED AUTHORITIES (also gives date it was rectified)
+	description TEXT,
+	status varchar(30) NOT NULL, # may need to be changed!!!
+	
+	location varchar(100) NOT NULL,
+	upvotes int NOT NULL DEFAULT 0,
+	
+	CONSTRAINT pubcomplaintuser_fk FOREIGN KEY (username) REFERENCES users (username)
+	ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 /*View for public and private complaints*/
